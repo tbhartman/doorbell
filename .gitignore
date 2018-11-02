@@ -1,0 +1,8 @@
+/abaqus2dyna
+*.pyc
+__pycache__
+*.egg-info
+/build
+/dist
+/coverage
+/.tox

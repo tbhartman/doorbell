@@ -1,0 +1,15 @@
+[run]
+source =
+    doorbell
+omit =
+    */doorbell/_version.py
+    */test/*
+branch = True
+data_file = coverage/.coverage
+[paths]
+source = 
+    src/doorbell
+    *\site-packages\doorbell
+    */site-packages/doorbell
+[html]
+directory = coverage/html
