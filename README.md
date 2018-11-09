@@ -17,23 +17,21 @@ Define an object that receives a visitor.  For example, in an expression
 evaluator, create classes for a value and add and multiply operators:
 
 ```python
-class Value(doorbell.Visitee):
+@doorbell.Visitee.create
+class Value:
     def __init__(self, value=0):
         self.value = value
         self.children = []
 
-    def accept(self, visitor):
-        return visitor.visit_Value(self)
 
-
+@doorbell.Visitee.create
 class Add(Value):
-    def accept(self, visitor):
-        return visitor.visit_Add(self)
+    pass
 
 
+@doorbell.Visitee.create('Multiply')
 class Mult(Add):
-    def accept(self, visitor):
-        return visitor.visit_Mult(self)
+    pass
 ```
 
 Then create a visitor class to evaluate:
@@ -46,7 +44,7 @@ class Visitor(doorbell.CascadingVisitor):
     def visit_Add(self, obj, children):
         return functools.reduce(operator.add, children, 0)
 
-    def visit_Mult(self, obj, children):
+    def visit_Multiply(self, obj, children):
         return functools.reduce(operator.mul, children, 1)
 ```
 

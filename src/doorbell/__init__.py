@@ -1,5 +1,6 @@
 import abc
 import functools
+import inspect
 
 from . import _version
 from . import _six
@@ -9,6 +10,22 @@ __version__ = _version.get_versions()['version']
 
 
 class Visitee(_six.with_metaclass(abc.ABCMeta, object)):
+    @staticmethod
+    def create(cls_or_string, name=None):
+        if inspect.isclass(cls_or_string):
+            name = cls_or_string.__name__ if name is None else name
+
+            def accept(self, visitor):
+                return getattr(visitor, 'visit_' + name)(self)
+            attr = {'accept': accept}
+            if issubclass(cls_or_string, Visitee):
+                bases = (cls_or_string,)
+            else:
+                bases = (cls_or_string, Visitee)
+            return type(cls_or_string.__name__, bases, attr)
+        else:
+            return functools.partial(Visitee.create, name=cls_or_string)
+
     @abc.abstractmethod
     def accept(self, visitor):
         """accept a `Visitor`
