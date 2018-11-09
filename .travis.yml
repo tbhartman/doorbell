@@ -12,6 +12,6 @@ before_script:
   - pip install --upgrade setuptools
   - mkdir coverage
 script:
-  - make coverage
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then make test; else make coverage; fi
 after_success:
-  - coveralls --data_file coverage/.coverage
+  - if [[ $TRAVIS_PYTHON_VERSION != '3.4' ]]; then coveralls --data_file coverage/.coverage; fi
