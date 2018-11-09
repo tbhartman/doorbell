@@ -6,4 +6,7 @@ coverage:
 	coverage html
 	coverage report
 
-.PHONY: test coverage
+style:
+	flake8
+
+.PHONY: test coverage style
