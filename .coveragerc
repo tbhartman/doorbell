@@ -3,6 +3,7 @@ source =
     doorbell
 omit =
     */doorbell/_version.py
+    */doorbell/_six.py
     */test/*
 branch = True
 data_file = coverage/.coverage

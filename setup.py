@@ -4,10 +4,12 @@ from setuptools import setup
 import versioneer
 
 test_deps = [
+    'coverage',
     'pytest',
     'pytest-cov',
+    'sphinx_rtd_theme',
     'tox',
-    'coverage',
+    'versioneer',
     ],
 extras = {
     'test': test_deps,
@@ -34,5 +36,12 @@ setup(
         "Topic :: Utilities",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )
