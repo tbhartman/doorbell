@@ -1,3 +1,4 @@
+
 # This file helps to compute a version number in source trees obtained from
 # git-archive tarball (such as those provided by githubs download-from-tag
 # feature). Distribution tarballs (built by setup.py sdist) and build
@@ -10,7 +11,6 @@
 """Git implementation of _version.py."""
 
 import errno
-import functools
 import os
 import re
 import subprocess
@@ -43,7 +43,7 @@ def get_config():
     cfg.style = "pep440"
     cfg.tag_prefix = "v"
     cfg.parentdir_prefix = ""
-    cfg.versionfile_source = "src/abaqus2dyna/_version.py"
+    cfg.versionfile_source = "src/doorbell/_version.py"
     cfg.verbose = False
     return cfg
 
@@ -473,8 +473,15 @@ def render(pieces, style):
             "dirty": pieces["dirty"], "error": None,
             "date": pieces.get("date")}
 
+def cache(func):
+    cached = []
+    def wrapper(*args, **kwargs):
+        if not cached:
+            cached.append(func(*args, **kwargs))
+        return cached[0]
+    return wrapper
 
-@functools.lru_cache()
+@cache
 def get_versions():
     """Get version information or return default if unable to do so."""
     # I am in _version.py, which lives at ROOT/VERSIONFILE_SOURCE. If we have

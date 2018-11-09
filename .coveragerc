@@ -3,6 +3,7 @@ source =
     doorbell
 omit =
     */doorbell/_version.py
+    */doorbell/_six.py
     */test/*
 branch = True
 data_file = coverage/.coverage
@@ -11,5 +12,15 @@ source =
     src/doorbell
     *\site-packages\doorbell
     */site-packages/doorbell
+
+[report]
+exclude_lines = 
+    # re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
 [html]
 directory = coverage/html
