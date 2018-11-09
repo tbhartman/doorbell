@@ -1,17 +1,14 @@
 language: python
 python:
   - "2.7"
-  - "3.4"
   - "3.6"
 
 install:
   - pip install .[test]
 before_script:
   - pip install python-coveralls 'coverage>=4.4'
-  # to remedy --cov not recognized
-  - pip install --upgrade setuptools
   - mkdir coverage
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then make test; else make coverage; fi
+  - make coverage
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION != '3.4' ]]; then coveralls --data_file coverage/.coverage; fi
+  - coveralls --data_file coverage/.coverage
