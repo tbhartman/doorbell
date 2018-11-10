@@ -9,6 +9,7 @@ before_script:
   - pip install python-coveralls 'coverage>=4.4'
   - mkdir coverage
 script:
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then make style; fi
   - make coverage
 after_success:
   - coveralls --data_file coverage/.coverage
