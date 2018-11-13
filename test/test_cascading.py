@@ -3,23 +3,21 @@ import functools
 import operator
 
 
-class Value(doorbell.Visitee):
+@doorbell.Visitee.create
+class Value(object):
     def __init__(self, value=0):
         self.value = value
         self.children = []
 
-    def accept(self, visitor):
-        return visitor.visit_Value(self)
 
-
+@doorbell.Visitee.create
 class Add(Value):
-    def accept(self, visitor):
-        return visitor.visit_Add(self)
+    pass
 
 
+@doorbell.Visitee.create('Multiply')
 class Mult(Add):
-    def accept(self, visitor):
-        return visitor.visit_Mult(self)
+    pass
 
 
 class ManyArgs(Value):
@@ -34,7 +32,7 @@ class Visitor(doorbell.CascadingVisitor):
     def visit_Add(self, obj, children):
         return functools.reduce(operator.add, children, 0)
 
-    def visit_Mult(self, obj, children):
+    def visit_Multiply(self, obj, children):
         return functools.reduce(operator.mul, children, 1)
 
     def visit_ManyArgs(self, obj, children, *args):

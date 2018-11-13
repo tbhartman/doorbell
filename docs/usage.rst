@@ -22,6 +22,15 @@ where `visit_MyType` is the method on the visitor which applies to this
 particular object.  Typically, only the object (`self`) is passed, although
 any arguments will be passed along to the visitor's method.
 
+Several decoratormethod are provided to aid in creating the `accept` method:
+
+.. autosummary::
+    :nosignatures:
+
+    ~Visitee.create
+    ~Visitee.auto_create
+    ~Visitee.stop_auto_create
+
 The Visitor
 -----------
 
@@ -32,8 +41,11 @@ which are called from a :func:`Visitee.accpet`.  By default, any
 method whose name begins `visit_` is considered a visitor method.  However,
 the decorators:
 
-  * :func:`~Visitor.visitor_method`
-  * :func:`~Visitor.non_visitor_method`
+.. autosummary::
+    :nosignatures:
+
+    ~Visitor.visitor_method
+    ~Visitor.non_visitor_method
 
 override this default.  Any method decorated with
 :func:`~Visitor.visitor_method` will be considered a visitor method,

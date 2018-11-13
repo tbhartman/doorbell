@@ -5,6 +5,7 @@ import versioneer
 
 test_deps = [
     'coverage',
+    'flake8',
     'pytest',
     'pytest-cov',
     'sphinx_rtd_theme',
