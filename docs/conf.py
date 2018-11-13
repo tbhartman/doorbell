@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join('..','src')))
+sys.path.insert(0, os.path.abspath(os.pardir))
 
 
 # -- Project information -----------------------------------------------------
-project = 'doorbell'
-copyright = '2018, Tim Hartman'
-author = 'Tim Hartman'
+from setup import info
+project = info['name']
+copyright = info['copyright']
+author = info['author']
 
 # version handled by rtd
-version = ''
-release = ''
+version = info['version']
+release = info['version']
 
+today_fmt = '%Y-%m-%d'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
