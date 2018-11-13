@@ -68,7 +68,8 @@ class _MetaVisitee(abc.ABCMeta):
                     accept_name = parent._visitee_auto_function(name)
                     parent._visitee_auto_names[accept_name] += 1
                     if parent._visitee_auto_names[accept_name] > 1:
-                        msg = "Visitor method name already used: " + accept_name
+                        msg = ("Visitor method name already used: " +
+                               accept_name)
                         raise ValueError(msg)
                     accept = _create_accept(accept_name)
                     attrs['accept'] = accept
@@ -119,9 +120,9 @@ class Visitee(_six.with_metaclass(_MetaVisitee, object)):
             if callable(function):
                 name = function(arg.__name__)
             elif function is None:
-                name = arg.__name__
                 def function(i):
                     return i
+                name = arg.__name__
             else:
                 raise ValueError('Invalid argument ' + repr(function))
 
