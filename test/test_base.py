@@ -3,11 +3,6 @@ import doorbell.visitee
 import pytest
 
 
-def test_create_accept_invalid():
-    with pytest.raises(ValueError):
-        doorbell.visitee._create_accept("123")
-
-
 class TestVisitorDecorator:
     class Value(doorbell.Visitee):
         def __init__(self, value=0):

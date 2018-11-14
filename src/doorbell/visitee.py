@@ -21,6 +21,11 @@ def _create_accept(name):
         ValueError: if name is invalid.  name must be a string with only
                     alphanumeric characters or an underscore
 
+    >>> _create_accept("123")
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid visitor method name 123
+
     """
     name = str(name)
 
