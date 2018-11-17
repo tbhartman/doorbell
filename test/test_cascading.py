@@ -21,8 +21,8 @@ class Mult(Add):
 
 
 class ManyArgs(Value):
-    def accept(self, visitor, *args):
-        return visitor.visit_ManyArgs(self, *args)
+    def _accept(self, visitor, *args, **kwargs):
+        return visitor.visit_ManyArgs
 
 
 class Visitor(doorbell.CascadingVisitor):
