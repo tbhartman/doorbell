@@ -9,10 +9,9 @@ from . import _six
 
 
 def _create_accept(name):
-    """create an accept method from visitor method name
+    """create an _accept method from visitor method name
 
-    The created method calls the visitor method named
-    "visit_<name>".
+    The created method returns the visitor method named "visit_<name>".
 
     Args:
         name (str): visitor method suffix
@@ -30,8 +29,8 @@ def _create_accept(name):
     name = str(name)
 
     accept_definition = textwrap.dedent("""
-        def accept(self, visitor):
-            return visitor.visit_{0!s}(self)
+        def _accept(self, visitor, *args, **kwargs):
+            return visitor.visit_{0!s}
         """.format(name))
 
     # check string before eval
@@ -39,7 +38,7 @@ def _create_accept(name):
     name_re = re.compile('^' + basic + '$')
     name_match = name_re.match(name)
     accept_re = re.compile(
-        r'^ *return visitor.' + basic + r'\(self\)$',
+        r'^ *return visitor\.' + basic + '$',
         re.MULTILINE)
     accept_match = accept_re.search(accept_definition)
     if name_match is None or accept_match is None:
@@ -48,14 +47,14 @@ def _create_accept(name):
     locals_ = {}
     globals_ = {}
     exec(accept_definition, globals_, locals_)
-    locals_['accept']._autocreate = name
-    return locals_['accept']
+    locals_['_accept']._autocreate = name
+    return locals_['_accept']
 
 
 class _MetaVisitee(abc.ABCMeta):
     def __new__(cls, *args, **kwargs):
         name, bases, attrs = args[:3]
-        if 'accept' not in attrs:
+        if '_accept' not in attrs:
             has_auto = [hasattr(i, '_visitee_auto_names') for i in bases]
             if any(has_auto):
                 parent = bases[has_auto.index(True)]
@@ -70,7 +69,7 @@ class _MetaVisitee(abc.ABCMeta):
                                accept_name)
                         raise ValueError(msg)
                     accept = _create_accept(accept_name)
-                    attrs['accept'] = accept
+                    attrs['_accept'] = accept
         return super(_MetaVisitee, cls).__new__(cls, *args, **kwargs)
 
 
@@ -132,24 +131,24 @@ class Visitee(_six.with_metaclass(_MetaVisitee, object)):
                         and hasattr(arg, '_visitee_auto_names')):
                     raise ValueError('auto_create not yet applied')
                 else:
-                    accept = arg.__dict__.get('accept')
+                    accept = arg.__dict__.get('_accept')
                     if accept and getattr(accept, '_autocreate') is not None:
                         # need to remove auto-created-name
                         arg._visitee_auto_names[accept._autocreate] -= 1
-                    # create a super method
+                    # create a super method to call grandparent
                     locals_ = {}
                     globals_ = {
-                        'SuperClass': arg,
+                        'C': arg,
                         }
                     accept_definition = textwrap.dedent("""
-                        def accept(self, visitor):
-                            return super(SuperClass, self).accept(visitor)
+                        def _accept(self, *args, **kwargs):
+                            return super(C, self)._accept(*args, **kwargs)
                         """)
                     exec(accept_definition, globals_, locals_)
-                    attr['accept'] = locals_['accept']
-                    attr['accept']._autocreate = None
+                    attr['_accept'] = locals_['_accept']
+                    attr['_accept']._autocreate = None
             else:
-                attr['accept'] = _create_accept(name)
+                attr['_accept'] = _create_accept(name)
 
             attr['_visitee_auto_function'] = staticmethod(function)
 
@@ -174,8 +173,8 @@ class Visitee(_six.with_metaclass(_MetaVisitee, object)):
 
         >>> @Visitee.create('Person')
         ... class Tom:
-        ...    # def accept(self, visitor):
-        ...    #     return visitor.visit_Person(self)
+        ...    # def _accept(self, visitor):
+        ...    #     return visitor.visit_Person
         ...    pass
 
         Pass a callable to name the visitor method as a function of the
@@ -184,16 +183,16 @@ class Visitee(_six.with_metaclass(_MetaVisitee, object)):
 
         >>> @Visitee.create(lambda i: i.upper())
         ... class Richard:
-        ...    # def accept(self, visitor):
-        ...    #     return visitor.visit_RICHARD(self)
+        ...    # def _accept(self, visitor):
+        ...    #     return visitor.visit_RICHARD
         ...    pass
 
         Use the decorator directly:
 
         >>> @Visitee.create
         ... class Bob:
-        ...    # def accept(self, visitor):
-        ...    #     return visitor.visit_Bob(self)
+        ...    # def _accept(self, visitor):
+        ...    #     return visitor.visit_Bob
         ...    pass
 
         Args:
@@ -213,19 +212,65 @@ class Visitee(_six.with_metaclass(_MetaVisitee, object)):
                 bases = (arg, Visitee)
 
             accept = _create_accept(name)
-            return type(arg.__name__, bases, {'accept': accept})
+            return type(arg.__name__, bases, {'_accept': accept})
         else:
             return functools.partial(Visitee.create, name=arg)
 
     @abc.abstractmethod
-    def accept(self, visitor):
-        """accept a `Visitor`
+    def _accept(self, visitor, *args, **kwargs):
+        """Internal method to accept a `Visitor`
 
-        Call the appropriate `Visitor.visit_*` method and return the result.
+        This method must be overridden by subclasses and return the method
+        to call to do the visiting, typically a method of `visitor`.
 
-        Args:
-            visitor (Visitor): the visitor to accept Returns:
-            any value returned by the visitor
+        If this method throws an AttributeError, it is converted to a
+        NotImplementedError and `visitor.onNotImplemented` is called.  If any
+        other Error is thrown, it is passed on.
+
+        Arguments:
+            visitor: Visitor object
+                the object doing the visiting
+            *args: other arguments to `accept`
+            **kwargs: other keyword arguments to `accept`
 
         """
         raise NotImplementedError()
+
+    def accept(self, visitor, *args, **kwargs):
+        """accept a `Visitor`
+
+        This method must be overridden by a subclass and must call this
+        method via super.  All `accept` methods of subclasses must accept the
+        following arguments.  Additional arguments are the determination of
+        subclasses.
+
+        Arguments:
+            visitor: Visitor object
+                the object this is visiting
+
+        `accept` methods of subclasses must call this method with the
+        following arguments:
+
+        Arguments to this:
+            visitor: Visitor object
+                the object visiting this
+            visitor_method: callable
+                the callable used to visit this
+
+        """
+        try:
+            method = self._accept(visitor, *args, **kwargs)
+        except AttributeError as e:
+            name = None
+            try:
+                name = re.search("attribute '(.*?)'", e.args[0]).groups()[0]
+            except AttributeError:
+                pass
+            e = NotImplementedError(*e.args)
+            return visitor.onNotImplementedError(
+                self, e, name, *args, **kwargs)
+        else:
+            try:
+                return method(self, *args, **kwargs)
+            except Exception as e:
+                return visitor.onError(self, e, *args, **kwargs)

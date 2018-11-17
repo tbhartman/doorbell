@@ -8,8 +8,8 @@ class TestVisitorDecorator:
         def __init__(self, value=0):
             self.value = value
 
-        def accept(self, visitor):
-            return visitor.goto_Value(self)
+        def _accept(self, visitor):
+            return visitor.goto_Value
 
     class Visitor(doorbell.Visitor):
         @doorbell.Visitor.visitor_method
@@ -22,20 +22,72 @@ class TestVisitorDecorator:
         assert v.accept(a) == 1
 
 
-class TestNoVisitorMethod:
+class TestErrors:
+    class MyError(Exception):
+        pass
+
     @doorbell.Visitee.create
-    class Value(object):
+    class Value1(object):
         pass
 
-    class Visitor(doorbell.Visitor):
+    @doorbell.Visitee.create
+    class Value2(object):
         pass
 
-    def test_it(self):
-        a = self.Value()
-        v = self.Visitor()
+    class Visitor1(doorbell.Visitor):
+        def visit_Value1(self, *args, **kwargs):
+            raise TestErrors.MyError()
 
-        with pytest.raises(AttributeError):
-            a.accept(v)
+    class Visitor2(Visitor1):
+        def onNotImplementedError(self, *args, **kwargs):
+            return NotImplemented, args, kwargs
+
+        def onError(self, *args, **kwargs):
+            return args, kwargs
+
+    class Value3(doorbell.Visitee):
+        def _accept(self, visitor):
+            raise AttributeError('')
+
+    def test_attribute_error_during_accept(self):
+        a3 = self.Value3()
+        v1 = self.Visitor1()
+        with pytest.raises(NotImplementedError):
+            a3.accept(v1)
+
+    def test_default_onError(self):
+        a1 = self.Value1()
+        v1 = self.Visitor1()
+        with pytest.raises(self.MyError):
+            a1.accept(v1)
+
+    def test_default_onNotImplemented(self):
+        a2 = self.Value2()
+        v1 = self.Visitor1()
+        with pytest.raises(NotImplementedError):
+            a2.accept(v1)
+
+    def test_custom_onNotImplemented(self):
+        a2 = self.Value2()
+        v2 = self.Visitor2()
+
+        ret = a2.accept(v2, 1, a=1)
+        assert ret[0] == NotImplemented
+        assert ret[1][0] == a2
+        assert isinstance(ret[1][1], NotImplementedError)
+        assert ret[1][2] == 'visit_Value2'
+        assert ret[1][3] == 1
+        assert ret[2] == {'a': 1}
+
+    def test_custom_onError(self):
+        a1 = self.Value1()
+        v2 = self.Visitor2()
+
+        ret = a1.accept(v2, 1, a=1)
+        assert ret[0][0] == a1
+        assert isinstance(ret[0][1], self.MyError)
+        assert ret[0][2] == 1
+        assert ret[1] == {'a': 1}
 
 
 class TestVisiteeCreate:

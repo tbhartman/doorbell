@@ -51,6 +51,37 @@ class Visitor(_six.with_metaclass(_MetaVisitor, object)):
         super(Visitor, self).__init__(*args, **kwargs)
         self._visiting = False
 
+    def onNotImplementedError(self, visitee, error, name, *args, **kwargs):
+        """Handle methods not implemented by this visitor.
+
+        Arguments:
+            visitee: Visitee
+                the visitee that accepted
+            error: AttributeError
+                the error that was raised
+            name: str
+                the name of the method that was not implemented, if available,
+                else None
+            *args: variable arguments passed to accept
+            **kwargs: variable keyword arguments passed to accept
+
+        """
+        raise error
+
+    def onError(self, visitee, error, *args, **kwargs):
+        """Handle errors during visit methods
+
+        Arguments:
+            visitee: Visitee
+                the visitee that accepted
+            error: Exception
+                the error that was raised
+            *args: variable arguments passed to accept
+            **kwargs: variable keyword arguments passed to accept
+
+        """
+        raise error
+
     @classmethod
     def visitor_method(cls, func):
         """Wrapper to mark non-default method as a visitor method.

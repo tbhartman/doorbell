@@ -6,8 +6,8 @@ class TestNonVisitorDecorator:
         def __init__(self, value=0):
             self.value = value
 
-        def accept(self, visitor):
-            return visitor.visit_Value(self)
+        def _accept(self, visitor):
+            return visitor.visit_Value
 
     class Visitor(doorbell.WrappingVisitor):
         def _wrap_each_pre(*args, **kwargs):
@@ -28,8 +28,8 @@ class TestBasicWrapping:
         def __init__(self, value=0):
             self.value = value
 
-        def accept(self, visitor):
-            return visitor.visit_Value(self)
+        def _accept(self, visitor):
+            return visitor.visit_Value
 
     class Visitor(doorbell.WrappingVisitor):
         def visit_Value(self, obj):
